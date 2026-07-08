@@ -1,0 +1,15 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Pytest / Unit Tests
+.pytest_cache/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# VectorVault Data
+data/
