@@ -45,7 +45,7 @@ class HNSW:
     def insert(self, vector: np.ndarray, node_id: int) -> None:
         """Insert a new vector into the HNSW index.
 
-        Complexity: O(log N) expected time.
+        Complexity: Expected logarithmic behavior.
 
         Parameters
         ----------
@@ -56,10 +56,102 @@ class HNSW:
 
         Raises
         ------
-        NotImplementedError
-            This method is not implemented in Phase 2A.
+        ValueError
+            If node_id already exists in the index, is negative, is not
+            50-dimensional, or contains NaN/Inf values.
         """
-        raise NotImplementedError("insert() is not implemented in Phase 2A.")
+        if node_id in self.vectors:
+            raise ValueError(f"Node ID {node_id} already exists in the index.")
+        if node_id < 0:
+            raise ValueError(f"Node ID {node_id} must be non-negative.")
+        if vector.shape != (50,):
+            raise ValueError(
+                f"Vector must be 50-dimensional, got shape {vector.shape}."
+            )
+        if np.isnan(vector).any() or np.isinf(vector).any():
+            raise ValueError("Vector contains NaN or infinite values.")
+
+        insert_level = self._random_level()
+        self.vectors[node_id] = vector
+
+        # First node insertion
+        if self.entry_point is None:
+            self.entry_point = node_id
+            self.max_level = insert_level
+            for level in range(insert_level + 1):
+                self.graphs[level] = {node_id: []}
+            return
+
+        curr_obj = self.entry_point
+
+        # Greedy routing down to insertion level + 1
+        for layer in range(self.max_level, insert_level, -1):
+            candidates = self._search_layer(
+                query=vector,
+                entry_points=[curr_obj],
+                ef=1,
+                layer=layer,
+                record_steps=False,
+            )
+            if candidates:
+                curr_obj = candidates[0][0]
+
+        # Multi-layer insertion starting at min(max_level, insert_level)
+        entry_points = [curr_obj]
+        start_level = min(self.max_level, insert_level)
+        for layer in range(start_level, -1, -1):
+            # Find nearest candidates
+            candidates = self._search_layer(
+                query=vector,
+                entry_points=entry_points,
+                ef=self.ef_construction,
+                layer=layer,
+                record_steps=False,
+            )
+
+            # Filter candidates to prevent self-loops
+            filtered_candidates = [cand for cand in candidates if cand[0] != node_id]
+
+            if not filtered_candidates:
+                continue
+
+            # Select nearest M neighbors
+            selected_neighbors = self._select_neighbors(filtered_candidates, self.M)
+
+            # Initialize node's adjacency entry
+            if layer not in self.graphs:
+                self.graphs[layer] = {}
+            self.graphs[layer][node_id] = selected_neighbors
+
+            # Establish bidirectional links and enforce degree limits
+            for nbr in selected_neighbors:
+                if nbr not in self.graphs[layer]:
+                    self.graphs[layer][nbr] = []
+
+                if node_id not in self.graphs[layer][nbr]:
+                    self.graphs[layer][nbr].append(node_id)
+
+                # Pruning neighbor connections
+                if len(self.graphs[layer][nbr]) > self.M:
+                    nbr_candidates = []
+                    for existing_nbr in self.graphs[layer][nbr]:
+                        dist = cosine_distance(
+                            self.vectors[nbr], self.vectors[existing_nbr]
+                        )
+                        nbr_candidates.append((existing_nbr, dist))
+
+                    pruned_neighbors = self._select_neighbors(nbr_candidates, self.M)
+                    self.graphs[layer][nbr] = pruned_neighbors
+
+            # Update entry points for the next layer down
+            entry_points = list(set(entry_points + selected_neighbors))
+
+        # Promotion to new upper layers if necessary
+        if insert_level > self.max_level:
+            for level in range(self.max_level + 1, insert_level + 1):
+                self.graphs[level] = {node_id: []}
+            self.entry_point = node_id
+            self.max_level = insert_level
 
     def query(
         self,
@@ -131,13 +223,10 @@ class HNSW:
         -------
         int
             The level at which the node will be inserted.
-
-        Raises
-        ------
-        NotImplementedError
-            This method is not implemented in Phase 2A.
         """
-        raise NotImplementedError("_random_level() is not implemented in Phase 2A.")
+        r = 1.0 - np.random.uniform(0.0, 1.0)
+        m_L = 1.0 / np.log(self.M)
+        return int(-np.log(r) * m_L)
 
     def _search_layer(
         self,
@@ -241,10 +330,6 @@ class HNSW:
         -------
         list[int]
             List of selected neighbor node IDs.
-
-        Raises
-        ------
-        NotImplementedError
-            This method is not implemented in Phase 2A.
         """
-        raise NotImplementedError("_select_neighbors() is not implemented in Phase 2A.")
+        sorted_candidates = sorted(candidates, key=lambda x: x[1])
+        return [node_id for node_id, _ in sorted_candidates[:M]]

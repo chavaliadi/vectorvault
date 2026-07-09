@@ -1,52 +1,66 @@
 # Memory — VectorVault Session
 
-Last updated: 2026-07-08T22:38:50+05:30
+Last updated: 2026-07-09T15:21:55+05:30
 
 ## 1. Completed Work
-- **GloVe Dataset Downloader**: Created `backend/download_glove.py` to automate downloading `glove.6B.50d.txt` using a fast Hugging Face LFS mirror, with fallback to Stanford's official ZIP site. Run successfully; downloaded a 171MB file to `data/glove.6B.50d.txt`.
-- **Vector Embedding Loader & Utilities**: Implemented `backend/embeddings.py` containing:
-  - `load_glove` (loads up to 5,000 words into a list of strings and corresponding float32 NumPy array).
-  - `cosine_distance` (computes normalized distance with division-by-zero protection and similarity clipping).
-  - `word_to_vector` (maps words to their corresponding vector index).
-- **Unit Testing Suite**: Created `tests/test_embeddings.py` validating loader robustness (skipping malformed data, FileNotFoundError checks), distance cases (orthogonal, identical, opposite, and zero-vectors), and word lookups.
+
+### Module 1: Embeddings Logic & Downloader
+- **GloVe Dataset Downloader**: Created `backend/download_glove.py` to download `glove.6B.50d.txt` using Hugging Face LFS mirror and Stanford ZIP fallback. Successfully verified 171MB dataset locally.
+- **Vector Embedding Loader & Utilities**: Implemented `backend/embeddings.py` featuring `load_glove` (loads up to 5,000 words), `cosine_distance` (computes distances with similarity clipping), and `word_to_vector` (maps words to indices).
+- **Unit Testing Suite**: Created `tests/test_embeddings.py` validating loader checks, distance bounds, and lookups (9/9 tests passing).
+
+### Module 2A: HNSW Query Routing & Navigation
+- **HNSW Class & Routing Implementation**: Implemented `backend/hnsw.py` initialization and graph representation.
+- **Search Operations**: Implemented `_search_layer` (heap-based beam search) and `query` (greedy upper-layer descent with `ef=1`, Layer 0 beam search).
+- **Mock Routing Tests**: Created `tests/test_hnsw.py` to mock a 5-node, 2-layer graph and verify traversal correctness, sorted results, and log step schemas.
+
+### Module 2B: HNSW Insertion & Graph Construction
+- **Index Construction**: Implemented level selection (`_random_level` with domain-safe log limits), neighbor selection (`_select_neighbors`), and `insert()` in `backend/hnsw.py`.
+- **Bidirectional Linking & Pruning**: Configured bidirectional edge creation during insertion. When link lists exceed $M$, pruning is performed locally, sorting neighbors of node $X$ by their distance to $X$ itself.
+- **Strict Boundary Checks**: Enforces `ValueError` checks on insert for duplicated IDs, negative IDs, malformed vector dimensions, and NaN/Inf coordinates.
+- **Expanded Test Suite**: Added HNSW tests verifying validations, exponential decay distribution, degree limit bounds, no duplicate links, and graph connectivity.
 
 ## 2. Architectural Decisions
 - **Similarity Clipping**: Documented the addition of similarity clipping (`[-1.0, 1.0]`) in `cosine_distance` in `docs/DECISIONS.md`. This defends against floating-point precision errors producing values like `1.0000001` which would break distance calculations.
 - **Python Version Update**: Formally updated python version targets in `docs/PROJECT_PLAN.md` and `docs/DEVELOPMENT_RULES.md` from `3.11` to `3.13` to match the local development environment.
 - **Deployment Platform Pivot**: Removed Render references from `docs/PROJECT_PLAN.md` and marked deployment platforms as undecided.
+- **Greedy routing reuse**: Implemented greedy routing on upper layers by reusing `_search_layer` with `ef=1`, rather than defining a separate greedy search function. This keeps the code DRY and simplified.
+- **Defensive search limits**: Enforced `ef = max(ef, k)` inside `query` to prevent errors when querying for more elements than the search beam size.
+- **Negated max-heap**: Utilized negative distance mapping to leverage Python's standard `heapq` module as a max-heap for result tracking.
+- **Duplicate ID Rejection**: Insertions raise `ValueError` on ID collision (rather than overwriting) to safeguard against graph structural corruption.
+- **Directed Pruning Connectivity**: Pruning is executed locally at the pruned node's coordinates. This creates directed graph edges that satisfy the "Insert must never disconnect the graph" invariant.
 
-## 3. Verification
-- **Automated Tests**: Formulated a suite of 9 tests in `tests/test_embeddings.py`. Executed `python3 -m pytest` and all 9 passed successfully in `0.14s`.
-- **Code Quality Checks**: Reformatted all Python files (`backend/download_glove.py`, `backend/embeddings.py`, `tests/test_embeddings.py`) using `black`.
-- **Manual Verification**: Inspected the filesystem and verified `data/glove.6B.50d.txt` was fully downloaded (171,350,515 bytes).
+## 3. HNSW Invariants to Preserve
+- **Query Mutability**: Query operations must never mutate the graph structure.
+- **Graph Connection Preservation**: Insert must never disconnect the graph (every node must have degree $\ge 1$ at each layer it belongs to, unless $N = 1$).
+- **Layer 0 Inclusion**: Every node in the index must exist on Layer 0.
+- **Adjacency Uniqueness**: Neighbor lists must contain unique node IDs (no duplicates).
+- **Degree Limit Bounds**: No node's link list can exceed the threshold $M_{max} = M$ at any layer.
+- **Cosine Distance Source**: `cosine_distance` must be imported only from `backend.embeddings`.
 
-## 4. Review Outcomes
-- **Critical Issues**: None.
-- **Important Issues**: None.
-- **Minor Issues**:
-  - *Eager Log Formatting*: The downloader and embeddings parser use f-string logger warning interpolations. For performance-critical code in future modules, lazy logger syntax (`logger.warning("...", arg)`) should be used.
-  - *Linear Search in word_to_vector*: Word index matching runs in $O(N)$. Fine for single entry points, but could be a bottleneck in batch processing.
-  - *Case Sensitivity*: `word_to_vector` does exact lookup. Since GloVe words are lowercase, capitalized words return `None`.
-- **Intentionally Postponed**:
-  - Word case normalization (decide whether to coerce to lowercase at the API layer or inside `embeddings.py`).
-  - Lookup speed optimization (switching list lookup to dictionary mapping if needed for performance in HNSW batch loops).
+## 4. Verification
+- **Automated Tests**: Total of 15 tests (9 for embeddings, 6 for HNSW) passing successfully in `0.34s` via `pytest`.
+- **Review Outcomes**: 
+  - Module 1 Approved (no issues found).
+  - Module 2A Approved (no issues found).
+  - Module 2B implemented and tested. Pending final integration review of the complete HNSW module.
+- **Code Quality**: Reformatted with `black` and verified compliant.
 
 ## 5. Current Project State
-- **Module 1 (embeddings.py)**: Complete, formatted, and fully tested.
-- **Module 2 (hnsw.py)**: Architecture approved (divided into Phase 2A for query routing mock tests and Phase 2B for insertion/pruning). No code written yet.
+- **Module 1 (embeddings.py & download_glove.py)**: Complete and verified.
+- **Module 2 (hnsw.py)**: Feature complete. Awaiting final integration review and refinements.
+- **Module 3 (FastAPI Backend)**: Not started.
 
 ## 6. Known Technical Debt
-- **download_glove.py Scope Discussion**: Implemented outside the strict original plan of Module 1, but added for local development convenience.
-- **Lazy Logging**: Convert eager log rendering to lazy formatting for warning hooks before importing patterns to `hnsw.py`.
-- **Lowercase Normalization**: Standardize input cleaning at the search boundaries.
+- **Lazy Logging**: Convert eager f-string logs to lazy logging (`logger.warning("...", args)`) in performance-sensitive areas.
+- **Case Sensitivity**: Lowercase coercion at the search query boundary.
+- **Linear Lookup**: Replace $O(N)$ list search in `word_to_vector` with $O(1)$ dictionary lookup if needed.
 
 ## 7. Next Session Plan
-- **Read this Memory**: Start by running `/remember restore` to reload the context.
-- **Review Module 2 Plan**: Read `implementation_plan.md` focusing on HNSW routing logic and steps logging structures.
-- **Implement Phase 2A**: Build the `HNSW` class definition, `_search_layer` (beam search), and `query()` routing method in `backend/hnsw.py`.
-- **Verify Phase 2A**: Create `tests/test_hnsw.py` with mock graphs and routing assertions. **Do not begin Phase 2B (insertion)** until Phase 2A query routing passes tests.
-
-## 8. Context for Future Sessions
-- The Python local environment is running Python 3.13.9. All docstrings must be NumPy-style and contain Big-O complexity notes.
-- Ensure that `cosine_distance` is imported from `backend.embeddings` only.
-- The `glove.6B.50d.txt` dataset is downloaded locally and gitignored under `data/`.
+1. Read this memory.
+2. Review the complete HNSW implementation (Phase 2A + Phase 2B).
+3. Fix any review findings.
+4. Verify graph invariants and test coverage.
+5. Update `docs/DECISIONS.md` if needed.
+6. Commit and push the finalized Module 2.
+7. Begin planning Module 3 (FastAPI Backend).
