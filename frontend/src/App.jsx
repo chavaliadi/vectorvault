@@ -1,129 +1,67 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Header from "./components/Header";
 import GraphCanvas from "./components/GraphCanvas";
 import TraversalPlayer from "./components/TraversalPlayer";
 import ComparisonPanel from "./components/ComparisonPanel";
 import NodeInspector from "./components/NodeInspector";
 
-import { fetchGraph, fetchBenchmark, searchWord } from "./utils/api";
-
+/**
+ * Root App component.
+ * Acts as the centralized state owner for the visualization frontend.
+ * Placeholder structure for Phase 4A.
+ */
 export default function App() {
-  // Global Graph & Index Metrics State
+  // Scaffolding placeholder state
   const [graphData, setGraphData] = useState(null);
   const [benchmarkStats, setBenchmarkStats] = useState(null);
-
-  // Search Query & Animation Traversal State
   const [queryResponse, setQueryResponse] = useState(null);
   const [currentStepIdx, setCurrentStepIdx] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(500); // 0.5s default
-
-  // Interaction State
+  const [playbackSpeed, setPlaybackSpeed] = useState(500);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 1. Initial mounting fetch to load graph coordinates and stats
-  useEffect(() => {
-    async function initApp() {
-      try {
-        setIsLoading(true);
-        const [graph, stats] = await Promise.all([fetchGraph(), fetchBenchmark()]);
-        setGraphData(graph);
-        setBenchmarkStats(stats);
-      } catch (err) {
-        setError("Failed to connect to backend server. Make sure FastAPI server is running.");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    initApp();
-  }, []);
-
-  // 2. Playback animation interval loop
-  useEffect(() => {
-    if (!isPlaying || !queryResponse) return;
-
-    const totalSteps = queryResponse.steps.length;
-    if (currentStepIdx >= totalSteps - 1) {
-      setIsPlaying(false);
-      return;
-    }
-
-    const intervalId = setInterval(() => {
-      setCurrentStepIdx((prev) => {
-        if (prev >= totalSteps - 1) {
-          setIsPlaying(false);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, playbackSpeed);
-
-    return () => clearInterval(intervalId);
-  }, [isPlaying, currentStepIdx, playbackSpeed, queryResponse]);
-
-  // 3. Search action trigger
-  const handleSearch = async (word, k, ef) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      setIsPlaying(false);
-      setCurrentStepIdx(-1);
-      setQueryResponse(null);
-
-      const response = await searchWord(word, k, ef);
-      setQueryResponse(response);
-    } catch (err) {
-      setError(err.message);
-    } finally {
+  // Mock search query triggered from search bar input
+  const handleSearch = (word) => {
+    setIsLoading(true);
+    setError(null);
+    console.log(`Mock search requested for: ${word}`);
+    // Simulate lookup without API fetches
+    setTimeout(() => {
       setIsLoading(false);
-    }
+      // Setup mock empty response structures
+      setQueryResponse({
+        hnsw_results: [],
+        brute_force_results: [],
+        steps: [],
+        stats: {
+          hnsw_visited: 0,
+          brute_force_visited: 5000,
+          hnsw_time_ms: 0.0,
+          brute_force_time_ms: 0.0,
+          recall: 0.0,
+        },
+      });
+    }, 500);
   };
 
-  // Playback handlers
-  const handlePlayPause = () => {
-    if (!queryResponse) return;
-    if (currentStepIdx >= queryResponse.steps.length - 1) {
-      // Re-start from beginning if finished
-      setCurrentStepIdx(-1);
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleStepForward = () => {
-    if (!queryResponse || isPlaying) return;
-    setCurrentStepIdx((prev) => Math.min(prev + 1, queryResponse.steps.length - 1));
-  };
-
-  const handleStepBack = () => {
-    if (!queryResponse || isPlaying) return;
-    setCurrentStepIdx((prev) => Math.max(prev - 1, -1));
-  };
-
+  // Mock playback control triggers
+  const handlePlayPause = () => setIsPlaying(!isPlaying);
+  const handleStepForward = () => setCurrentStepIdx((prev) => prev + 1);
+  const handleStepBack = () => setCurrentStepIdx((prev) => Math.max(prev - 1, -1));
   const handleReset = () => {
     setIsPlaying(false);
     setCurrentStepIdx(-1);
   };
+  const handleSeek = (idx) => setCurrentStepIdx(idx);
+  const handleChangeSpeed = (ms) => setPlaybackSpeed(ms);
 
-  const handleSeek = (idx) => {
-    if (!queryResponse) return;
-    setIsPlaying(false);
-    setCurrentStepIdx(idx);
-  };
-
-  const handleChangeSpeed = (ms) => {
-    setPlaybackSpeed(ms);
-  };
-
-  // Active step coordinates for visualization
-  const currentStep =
-    queryResponse && currentStepIdx >= 0 ? queryResponse.steps[currentStepIdx] : null;
-
-  const totalSteps = queryResponse ? queryResponse.steps.length : 0;
+  const totalSteps = queryResponse && queryResponse.steps ? queryResponse.steps.length : 0;
   const hnswResults = queryResponse ? queryResponse.hnsw_results : [];
   const bruteForceResults = queryResponse ? queryResponse.brute_force_results : [];
   const comparisonStats = queryResponse ? queryResponse.stats : null;
+  const currentStep = queryResponse && currentStepIdx >= 0 ? queryResponse.steps[currentStepIdx] : null;
 
   return (
     <div className="app-container">
@@ -135,42 +73,28 @@ export default function App() {
 
       {error && (
         <div className="error-banner">
-          <span className="error-message">⚠️ {error}</span>
-          <button className="btn-close-error" onClick={() => setError(null)}>
-            ✕
-          </button>
+          <span>⚠️ {error}</span>
+          <button onClick={() => setError(null)}>✕</button>
         </div>
       )}
 
-      {isLoading && (
-        <div className="loader-overlay">
-          <div className="loader-content">
-            <div className="spinner"></div>
-            <div className="loader-text">Constructing Index & Routing Query...</div>
-          </div>
-        </div>
-      )}
+      {isLoading && <div className="loader-placeholder">Loading...</div>}
 
       <main className="app-main-grid">
         {/* Left Column - Traversal Visualizer */}
         <section className="column-visualizer panel-card">
           <div className="panel-header">
-            <h2 className="panel-title">HNSW Routing Traversal</h2>
-            {currentStep && (
-              <div className="panel-subtitle">
-                Active Layer: <span className="badge-layer">Layer {currentStep.layer}</span>
-              </div>
-            )}
+            <h2 className="panel-title">Graph Routing Visualization</h2>
           </div>
+          
           <GraphCanvas
             graphData={graphData}
             currentStep={currentStep}
-            currentStepIdx={currentStepIdx}
-            steps={queryResponse?.steps || []}
             hnswResults={hnswResults}
             selectedNodeId={selectedNodeId}
             onSelectNode={setSelectedNodeId}
           />
+
           <TraversalPlayer
             currentStepIdx={currentStepIdx}
             totalSteps={totalSteps}
@@ -185,26 +109,24 @@ export default function App() {
           />
         </section>
 
-        {/* Right Column - Comparison Stats & Node Inspector */}
+        {/* Right Column - Sideline Panels */}
         <section className="column-sidebar">
-          {selectedNodeId !== null ? (
-            <div className="panel-card scrollable">
+          <div className="panel-card scrollable">
+            {selectedNodeId !== null ? (
               <NodeInspector
                 nodeId={selectedNodeId}
                 graphData={graphData}
-                onSelectNode={setSelectedNodeId}
+                words={[]}
                 onClose={() => setSelectedNodeId(null)}
               />
-            </div>
-          ) : (
-            <div className="panel-card scrollable">
+            ) : (
               <ComparisonPanel
                 hnswResults={hnswResults}
                 bruteForceResults={bruteForceResults}
                 stats={comparisonStats}
               />
-            </div>
-          )}
+            )}
+          </div>
         </section>
       </main>
     </div>

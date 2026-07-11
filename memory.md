@@ -1,6 +1,6 @@
 # Memory — VectorVault Session
 
-Last updated: 2026-07-11T17:48:47+05:30
+Last updated: 2026-07-11T18:16:43+05:30
 
 ## 1. Completed Work
 
@@ -27,13 +27,12 @@ Last updated: 2026-07-11T17:48:47+05:30
   - `GET /benchmark` endpoint serving aggregated recall statistics.
 - **API Routing Integration Tests**: Implemented `tests/test_api.py` validating endpoint schemas, validations (404 and 422), and startup crash handling (halting lifespan startup with `FileNotFoundError` if dataset is missing).
 
-### Module 4: Frontend Visualization (React + D3.js)
+### Module 4: Frontend Scaffolding & Layout (Phase 4A)
 - **Scaffolded Workspace**: Created React + Vite environment under the `frontend/` directory using standard templates.
-- **Graph & Zoom Canvas**: Built `GraphCanvas.jsx` wrapping static force layouts (cooling engine after 100 ticks to preserve CPU), Zoom/Pan controls, and selective link pruning (hiding Layer 0 hairballs to keep traversal paths readable).
-- **Interactive Inspector**: Implemented `NodeInspector.jsx` mapping all layers the selected node resides on and rendering neighbors as clickable search portal buttons.
-- **Playback controller**: Created `TraversalPlayer.jsx` supplying play/pause ticks, step-timeline seeks, and speed adjustments.
-- **API wrapper & Shared Styling**: Wrote `api.js` for query/graph endpoints and constructed custom theme variables in `index.css` supporting dark mode and loaders.
-- **Side-by-side Comparisons**: Implemented `ComparisonPanel.jsx` rendering latencies and HNSW vs Brute Force results.
+- **Placeholder Components**: Scaffolded mock layout components (`Header.jsx`, `GraphCanvas.jsx`, `TraversalPlayer.jsx`, `ComparisonPanel.jsx`, `NodeInspector.jsx`) accepting props defined in `implementation_plan.md` with minimal UI boxes and comments outlining future roles.
+- **Central State Manager**: Implemented `App.jsx` holding visualization states (`graphData`, `benchmarkStats`, `queryResponse`, `currentStepIdx`, `isPlaying`, `playbackSpeed`, `selectedNodeId`, `isLoading`, `error`) initialized with default values, without API bindings.
+- **Styling**: Configured index.css layout grids and theme colors.
+- **Scaffolded Utilities**: Added mock `api.js` throwing `"Not implemented"` errors and `nodeColor.js` returning default slate-blue.
 - **Build Verified**: Compiled production bundle successfully with zero warnings: `npm run build`.
 
 ## 2. Architectural Decisions
@@ -47,8 +46,7 @@ Last updated: 2026-07-11T17:48:47+05:30
 - **Directed Pruning Connectivity**: Pruning is executed locally at the pruned node's coordinates. This creates directed graph edges that satisfy the "Insert must never disconnect the graph" invariant.
 - **Unified Benchmark Library**: Built the benchmark logic into a clean CLI module that main endpoints reuse directly, ensuring consistency and preventing duplication of index setup logic.
 - **FastAPI Layer Delegation Constraint**: Explicitly enforced that the API routes do not perform vector calculations or traverse HNSW subgraphs. All calculations are delegated strictly to lower layers.
-- **D3 DOM Isolation & Cooling**: Separated D3 DOM nodes from React’s virtual DOM update cycle. Runs force simulations offline for 100 ticks and halts them before render to prevent CPU lockup.
-- **Traversal Edge Highlighting**: Limits Layer 0 edge drawings exclusively to active search path links and neighbor inspection focus, preventing screen clutter.
+- **Phased Frontend Development**: Adopted a strict separation: Phase 4A focuses entirely on architectural scaffolding, layout, styling, state initialization, and utilities mocks, leaving graph D3 rendering (4B) and timelines playback controllers (4C) for subsequent phases.
 
 ## 3. HNSW Invariants to Preserve
 - **Query Mutability**: Query operations must never mutate the graph structure.
@@ -59,19 +57,19 @@ Last updated: 2026-07-11T17:48:47+05:30
 - **Cosine Distance Source**: `cosine_distance` must be imported only from `backend.embeddings`.
 
 ## 4. Verification
-- **Automated Tests**: Total of 17 tests (9 for embeddings, 6 for HNSW, 2 for API) passing successfully in `29.46s` via `pytest`.
-- **Vite Compilation**: React + Vite workspace compiled successfully via `npm run build` in `519ms`.
+- **Automated Tests**: Total of 17 tests (9 for embeddings, 6 for HNSW, 2 for API) passing successfully in `30.04s` via `pytest`.
+- **Vite Compilation**: React + Vite scaffolded workspace compiled successfully via `npm run build` in `99ms`.
 - **Review Outcomes**: 
   - Module 1 Approved.
   - Module 2 Approved.
   - Module 3 Approved.
-  - Module 4 implemented, built, and compiled cleanly.
+  - Phase 4A scaffolded, built, and compiled cleanly.
 
 ## 5. Current Project State
 - **Module 1 (embeddings.py & download_glove.py)**: Complete and verified.
 - **Module 2 (hnsw.py)**: Complete and verified.
 - **Module 3 (main.py & benchmark.py)**: Complete and verified.
-- **Module 4 (React + Vite + D3 Frontend)**: Complete, compiled, and verified.
+- **Module 4 (React + Vite + D3 Frontend)**: Phase 4A completed. Awaiting review.
 - **Integration Review & Deployment**: Ready to begin.
 
 ## 6. Known Technical Debt
@@ -81,6 +79,6 @@ Last updated: 2026-07-11T17:48:47+05:30
 
 ## 7. Next Session Plan
 1. Read this memory.
-2. Review the entire application (running FastAPI server and loading Vite frontend locally).
-3. Verify D3.js force-directed cluster layout, timeline playback operations, and inspector selections.
-4. Finalize the project documentation and benchmarks list in README.md.
+2. Review Phase 4A scaffolding components and state hooks layout.
+3. Align on the design and setup for Phase 4B (D3 Graph integration, simulation cooling, and edge filtering).
+4. Implement API fetches and D3 force rendering.

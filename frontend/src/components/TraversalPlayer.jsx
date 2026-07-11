@@ -1,5 +1,23 @@
 import React from "react";
 
+/**
+ * TraversalPlayer component.
+ * Responsible for timeline seeking and animation play/pause loop intervals.
+ * Scaffolded as placeholder for Phase 4A.
+ * 
+ * Props
+ * -----
+ * currentStepIdx : Number
+ * totalSteps : Number
+ * isPlaying : Boolean
+ * playbackSpeed : Number
+ * onPlayPause : Function
+ * onStepForward : Function
+ * onStepBack : Function
+ * onReset : Function
+ * onSeek : Function
+ * onChangeSpeed : Function
+ */
 export default function TraversalPlayer({
   currentStepIdx,
   totalSteps,
@@ -12,27 +30,15 @@ export default function TraversalPlayer({
   onSeek,
   onChangeSpeed,
 }) {
-  const isCompleted = currentStepIdx === totalSteps - 1;
-  const isStart = currentStepIdx === -1;
-
   return (
-    <div className="traversal-player">
+    <div className="traversal-player-placeholder">
       <div className="player-controls-row">
-        <button className="btn-control" onClick={onReset} title="Reset Animation">
-          ⏮ Reset
-        </button>
-
-        <button className="btn-control" onClick={onStepBack} disabled={isStart} title="Step Back">
-          ◀ Back
-        </button>
-
-        <button className="btn-control btn-play-pause" onClick={onPlayPause} title={isPlaying ? "Pause" : "Play"}>
+        <button onClick={onReset} className="btn-control-placeholder">⏮ Reset</button>
+        <button onClick={onStepBack} className="btn-control-placeholder">◀ Back</button>
+        <button onClick={onPlayPause} className="btn-control-placeholder">
           {isPlaying ? "⏸ Pause" : "▶ Play"}
         </button>
-
-        <button className="btn-control" onClick={onStepForward} disabled={isCompleted || totalSteps === 0} title="Step Forward">
-          Forward ▶
-        </button>
+        <button onClick={onStepForward} className="btn-control-placeholder">Forward ▶</button>
       </div>
 
       <div className="player-timeline-row">
@@ -42,9 +48,8 @@ export default function TraversalPlayer({
           min="-1"
           max={totalSteps - 1}
           value={currentStepIdx}
-          onChange={(e) => onSeek(parseInt(e.target.value))}
-          disabled={totalSteps === 0}
-          className="timeline-slider"
+          onChange={(e) => onSeek && onSeek(parseInt(e.target.value))}
+          className="timeline-slider-placeholder"
         />
         <span className="timeline-counter">
           {currentStepIdx + 1} / {totalSteps}
@@ -52,24 +57,9 @@ export default function TraversalPlayer({
       </div>
 
       <div className="player-speed-row">
-        <span className="speed-label">Playback Interval:</span>
-        <button
-          className={`btn-speed ${playbackSpeed === 1000 ? "active" : ""}`}
-          onClick={() => onChangeSpeed(1000)}
-        >
-          Slow (1.0s)
-        </button>
-        <button
-          className={`btn-speed ${playbackSpeed === 500 ? "active" : ""}`}
-          onClick={() => onChangeSpeed(500)}
-        >
-          Normal (0.5s)
-        </button>
-        <button
-          className={`btn-speed ${playbackSpeed === 200 ? "active" : ""}`}
-          onClick={() => onChangeSpeed(200)}
-        >
-          Fast (0.2s)
+        <span>Interval: {playbackSpeed}ms</span>
+        <button onClick={() => onChangeSpeed && onChangeSpeed(500)} className="btn-speed-placeholder">
+          Set Speed (500ms)
         </button>
       </div>
     </div>
