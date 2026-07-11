@@ -1,6 +1,6 @@
 # Memory — VectorVault Session
 
-Last updated: 2026-07-10T17:15:00+05:30
+Last updated: 2026-07-11T17:48:47+05:30
 
 ## 1. Completed Work
 
@@ -27,17 +27,28 @@ Last updated: 2026-07-10T17:15:00+05:30
   - `GET /benchmark` endpoint serving aggregated recall statistics.
 - **API Routing Integration Tests**: Implemented `tests/test_api.py` validating endpoint schemas, validations (404 and 422), and startup crash handling (halting lifespan startup with `FileNotFoundError` if dataset is missing).
 
+### Module 4: Frontend Visualization (React + D3.js)
+- **Scaffolded Workspace**: Created React + Vite environment under the `frontend/` directory using standard templates.
+- **Graph & Zoom Canvas**: Built `GraphCanvas.jsx` wrapping static force layouts (cooling engine after 100 ticks to preserve CPU), Zoom/Pan controls, and selective link pruning (hiding Layer 0 hairballs to keep traversal paths readable).
+- **Interactive Inspector**: Implemented `NodeInspector.jsx` mapping all layers the selected node resides on and rendering neighbors as clickable search portal buttons.
+- **Playback controller**: Created `TraversalPlayer.jsx` supplying play/pause ticks, step-timeline seeks, and speed adjustments.
+- **API wrapper & Shared Styling**: Wrote `api.js` for query/graph endpoints and constructed custom theme variables in `index.css` supporting dark mode and loaders.
+- **Side-by-side Comparisons**: Implemented `ComparisonPanel.jsx` rendering latencies and HNSW vs Brute Force results.
+- **Build Verified**: Compiled production bundle successfully with zero warnings: `npm run build`.
+
 ## 2. Architectural Decisions
 - **Similarity Clipping**: Documented the addition of similarity clipping (`[-1.0, 1.0]`) in `cosine_distance` in `docs/DECISIONS.md`. This defends against floating-point precision errors producing values like `1.0000001` which would break distance calculations.
 - **Python Version Update**: Formally updated python version targets in `docs/PROJECT_PLAN.md` and `docs/DEVELOPMENT_RULES.md` from `3.11` to `3.13` to match the local development environment.
 - **Deployment Platform Pivot**: Removed Render references from `docs/PROJECT_PLAN.md` and marked deployment platforms as undecided.
-- **Greedy routing reuse**: Implemented greedy routing on upper layers by reusing `_search_layer` with `ef=1`, rather than defining a separate greedy search function. This keeps the code codebase DRY and simplified.
+- **Greedy routing reuse**: Implemented greedy routing on upper layers by reusing `_search_layer` with `ef=1`, rather than defining a separate greedy search function. This keeps the codebase DRY and simplified.
 - **Defensive search limits**: Enforced `ef = max(ef, k)` inside `query` to prevent errors when querying for more elements than the search beam size.
 - **Negated max-heap**: Utilized negative distance mapping to leverage Python's standard `heapq` module as a max-heap for result tracking.
 - **Duplicate ID Rejection**: Insertions raise `ValueError` on ID collision (rather than overwriting) to safeguard against graph structural corruption.
 - **Directed Pruning Connectivity**: Pruning is executed locally at the pruned node's coordinates. This creates directed graph edges that satisfy the "Insert must never disconnect the graph" invariant.
 - **Unified Benchmark Library**: Built the benchmark logic into a clean CLI module that main endpoints reuse directly, ensuring consistency and preventing duplication of index setup logic.
 - **FastAPI Layer Delegation Constraint**: Explicitly enforced that the API routes do not perform vector calculations or traverse HNSW subgraphs. All calculations are delegated strictly to lower layers.
+- **D3 DOM Isolation & Cooling**: Separated D3 DOM nodes from React’s virtual DOM update cycle. Runs force simulations offline for 100 ticks and halts them before render to prevent CPU lockup.
+- **Traversal Edge Highlighting**: Limits Layer 0 edge drawings exclusively to active search path links and neighbor inspection focus, preventing screen clutter.
 
 ## 3. HNSW Invariants to Preserve
 - **Query Mutability**: Query operations must never mutate the graph structure.
@@ -48,19 +59,20 @@ Last updated: 2026-07-10T17:15:00+05:30
 - **Cosine Distance Source**: `cosine_distance` must be imported only from `backend.embeddings`.
 
 ## 4. Verification
-- **Automated Tests**: Total of 17 tests (9 for embeddings, 6 for HNSW, 2 for API) passing successfully in `29.11s` via `pytest`.
-- **Benchmark Run**: Standalone CLI executed successfully: Avg HNSW Time = 1.8662 ms, Avg Brute Force Time = 26.0342 ms, Avg Recall@10 = 0.9540.
+- **Automated Tests**: Total of 17 tests (9 for embeddings, 6 for HNSW, 2 for API) passing successfully in `29.46s` via `pytest`.
+- **Vite Compilation**: React + Vite workspace compiled successfully via `npm run build` in `519ms`.
 - **Review Outcomes**: 
   - Module 1 Approved.
   - Module 2 Approved.
-  - Module 3 implemented, tested, and formatted.
-- **Code Quality**: Reformatted with `black` and verified compliant.
+  - Module 3 Approved.
+  - Module 4 implemented, built, and compiled cleanly.
 
 ## 5. Current Project State
 - **Module 1 (embeddings.py & download_glove.py)**: Complete and verified.
 - **Module 2 (hnsw.py)**: Complete and verified.
 - **Module 3 (main.py & benchmark.py)**: Complete and verified.
-- **Module 4 (React + Vite + D3 Frontend)**: Ready to begin.
+- **Module 4 (React + Vite + D3 Frontend)**: Complete, compiled, and verified.
+- **Integration Review & Deployment**: Ready to begin.
 
 ## 6. Known Technical Debt
 - **Lazy Logging**: Convert eager f-string logs to lazy logging (`logger.warning("...", args)`) in performance-sensitive areas.
@@ -69,8 +81,6 @@ Last updated: 2026-07-10T17:15:00+05:30
 
 ## 7. Next Session Plan
 1. Read this memory.
-2. Review the frontend architecture (React + Vite + TailwindCSS if requested, otherwise Vanilla CSS).
-3. Set up the React application using `npx create-vite` or equivalent.
-4. Establish core components: Graph Visualizer (D3.js), Traversal Control Player, Node Inspector, and Comparison Panel.
-5. Configure API routing hooks connecting React state to FastAPI endpoints (`GET /graph`, `POST /query`, `GET /benchmark`).
-6. Verify design layouts, themes, and responsiveness.
+2. Review the entire application (running FastAPI server and loading Vite frontend locally).
+3. Verify D3.js force-directed cluster layout, timeline playback operations, and inspector selections.
+4. Finalize the project documentation and benchmarks list in README.md.
