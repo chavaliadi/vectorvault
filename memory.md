@@ -1,6 +1,6 @@
 # Memory — VectorVault Session
 
-Last updated: 2026-07-11T18:16:43+05:30
+Last updated: 2026-07-11T18:20:52+05:30
 
 ## 1. Completed Work
 
@@ -27,13 +27,15 @@ Last updated: 2026-07-11T18:16:43+05:30
   - `GET /benchmark` endpoint serving aggregated recall statistics.
 - **API Routing Integration Tests**: Implemented `tests/test_api.py` validating endpoint schemas, validations (404 and 422), and startup crash handling (halting lifespan startup with `FileNotFoundError` if dataset is missing).
 
-### Module 4: Frontend Scaffolding & Layout (Phase 4A)
-- **Scaffolded Workspace**: Created React + Vite environment under the `frontend/` directory using standard templates.
-- **Placeholder Components**: Scaffolded mock layout components (`Header.jsx`, `GraphCanvas.jsx`, `TraversalPlayer.jsx`, `ComparisonPanel.jsx`, `NodeInspector.jsx`) accepting props defined in `implementation_plan.md` with minimal UI boxes and comments outlining future roles.
-- **Central State Manager**: Implemented `App.jsx` holding visualization states (`graphData`, `benchmarkStats`, `queryResponse`, `currentStepIdx`, `isPlaying`, `playbackSpeed`, `selectedNodeId`, `isLoading`, `error`) initialized with default values, without API bindings.
-- **Styling**: Configured index.css layout grids and theme colors.
-- **Scaffolded Utilities**: Added mock `api.js` throwing `"Not implemented"` errors and `nodeColor.js` returning default slate-blue.
-- **Build Verified**: Compiled production bundle successfully with zero warnings: `npm run build`.
+### Module 4: Frontend Visualization (React + D3.js)
+- **Phase 4A (Scaffolding)**: Created React + Vite workspace layout with Vanilla CSS dark themes. Components and API utilities were created with minimal placeholders and properties.
+- **Phase 4B (Integration & Rendering)**:
+  - Integrated `utils/api.js` to execute active async backend routes (`fetchGraph`, `fetchBenchmark`, `searchWord`).
+  - Set up lifespan loader mounts inside `App.jsx` retrieving backend state on startup and validating connection failure errors.
+  - Implemented static force layout in `GraphCanvas.jsx` pre-running D3 simulation for `110` ticks and freezing positions via `simulation.stop()`.
+  - Configured panning/zooming behaviors and node selection triggers (`onSelectNode`).
+  - Applied layer coloring parameters (`nodeColor.js`) and limited link rendering strictly to upper layers (Layer 1+), hiding Layer 0 lines completely.
+  - Compiled production bundle successfully with zero warnings: `npm run build`.
 
 ## 2. Architectural Decisions
 - **Similarity Clipping**: Documented the addition of similarity clipping (`[-1.0, 1.0]`) in `cosine_distance` in `docs/DECISIONS.md`. This defends against floating-point precision errors producing values like `1.0000001` which would break distance calculations.
@@ -46,7 +48,8 @@ Last updated: 2026-07-11T18:16:43+05:30
 - **Directed Pruning Connectivity**: Pruning is executed locally at the pruned node's coordinates. This creates directed graph edges that satisfy the "Insert must never disconnect the graph" invariant.
 - **Unified Benchmark Library**: Built the benchmark logic into a clean CLI module that main endpoints reuse directly, ensuring consistency and preventing duplication of index setup logic.
 - **FastAPI Layer Delegation Constraint**: Explicitly enforced that the API routes do not perform vector calculations or traverse HNSW subgraphs. All calculations are delegated strictly to lower layers.
-- **Phased Frontend Development**: Adopted a strict separation: Phase 4A focuses entirely on architectural scaffolding, layout, styling, state initialization, and utilities mocks, leaving graph D3 rendering (4B) and timelines playback controllers (4C) for subsequent phases.
+- **D3 DOM Isolation & Static Cooling**: Separated D3 DOM nodes from React’s virtual DOM update cycle. Runs force simulations offline for 110 ticks and halts them before render to prevent CPU lockup.
+- **Graph Link Pruning (Hairball Prevention)**: Limits Layer 0 edge drawings completely during static state layout representation, rendering only sparse upper-level (Layer 1+) links.
 
 ## 3. HNSW Invariants to Preserve
 - **Query Mutability**: Query operations must never mutate the graph structure.
@@ -57,19 +60,19 @@ Last updated: 2026-07-11T18:16:43+05:30
 - **Cosine Distance Source**: `cosine_distance` must be imported only from `backend.embeddings`.
 
 ## 4. Verification
-- **Automated Tests**: Total of 17 tests (9 for embeddings, 6 for HNSW, 2 for API) passing successfully in `30.04s` via `pytest`.
-- **Vite Compilation**: React + Vite scaffolded workspace compiled successfully via `npm run build` in `99ms`.
+- **Automated Tests**: Total of 17 tests (9 for embeddings, 6 for HNSW, 2 for API) passing successfully in `30.95s` via `pytest`.
+- **Vite Compilation**: React + Vite workspace compiled successfully via `npm run build` in `135ms`.
 - **Review Outcomes**: 
   - Module 1 Approved.
   - Module 2 Approved.
   - Module 3 Approved.
-  - Phase 4A scaffolded, built, and compiled cleanly.
+  - Phase 4B implemented, built, and compiled cleanly.
 
 ## 5. Current Project State
 - **Module 1 (embeddings.py & download_glove.py)**: Complete and verified.
 - **Module 2 (hnsw.py)**: Complete and verified.
 - **Module 3 (main.py & benchmark.py)**: Complete and verified.
-- **Module 4 (React + Vite + D3 Frontend)**: Phase 4A completed. Awaiting review.
+- **Module 4 (React + D3 Frontend)**: Phase 4B complete and verified. Awaiting review.
 - **Integration Review & Deployment**: Ready to begin.
 
 ## 6. Known Technical Debt
@@ -79,6 +82,6 @@ Last updated: 2026-07-11T18:16:43+05:30
 
 ## 7. Next Session Plan
 1. Read this memory.
-2. Review Phase 4A scaffolding components and state hooks layout.
-3. Align on the design and setup for Phase 4B (D3 Graph integration, simulation cooling, and edge filtering).
-4. Implement API fetches and D3 force rendering.
+2. Review Phase 4B integration endpoints and static D3 force simulations.
+3. Align on the design and setup for Phase 4C (timeline playback, animations, and color highlighting).
+4. Implement interval playback triggers and inspect lists.

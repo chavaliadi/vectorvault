@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import GraphCanvas from "./components/GraphCanvas";
 import TraversalPlayer from "./components/TraversalPlayer";
 import ComparisonPanel from "./components/ComparisonPanel";
 import NodeInspector from "./components/NodeInspector";
 
+import { fetchGraph, fetchBenchmark } from "./utils/api";
+
 /**
  * Root App component.
- * Acts as the centralized state owner for the visualization frontend.
- * Placeholder structure for Phase 4A.
+ * Acts as the centralized state owner.
+ * Connected to backend endpoints for Graph and Benchmark fetching in Phase 4B.
  */
 export default function App() {
   // Scaffolding placeholder state
@@ -19,49 +21,49 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(500);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Mock search query triggered from search bar input
+  // Fetch initial graph structure and benchmark stats on startup
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const [graph, stats] = await Promise.all([fetchGraph(), fetchBenchmark()]);
+        setGraphData(graph);
+        setBenchmarkStats(stats);
+      } catch (err) {
+        setError(err.message || "Failed to connect to backend server.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  // Search query handler (Search logic not implemented in Phase 4B)
   const handleSearch = (word) => {
-    setIsLoading(true);
-    setError(null);
-    console.log(`Mock search requested for: ${word}`);
-    // Simulate lookup without API fetches
-    setTimeout(() => {
-      setIsLoading(false);
-      // Setup mock empty response structures
-      setQueryResponse({
-        hnsw_results: [],
-        brute_force_results: [],
-        steps: [],
-        stats: {
-          hnsw_visited: 0,
-          brute_force_visited: 5000,
-          hnsw_time_ms: 0.0,
-          brute_force_time_ms: 0.0,
-          recall: 0.0,
-        },
-      });
-    }, 500);
+    console.log(`Search requested for: ${word} (Not implemented in Phase 4B)`);
   };
 
-  // Mock playback control triggers
-  const handlePlayPause = () => setIsPlaying(!isPlaying);
-  const handleStepForward = () => setCurrentStepIdx((prev) => prev + 1);
-  const handleStepBack = () => setCurrentStepIdx((prev) => Math.max(prev - 1, -1));
-  const handleReset = () => {
-    setIsPlaying(false);
-    setCurrentStepIdx(-1);
-  };
-  const handleSeek = (idx) => setCurrentStepIdx(idx);
-  const handleChangeSpeed = (ms) => setPlaybackSpeed(ms);
+  // Traversal Playback handlers (Playback logic not implemented in Phase 4B)
+  const handlePlayPause = () => {};
+  const handleStepForward = () => {};
+  const handleStepBack = () => {};
+  const handleReset = () => {};
+  const handleSeek = (idx) => {};
+  const handleChangeSpeed = (ms) => {};
 
-  const totalSteps = queryResponse && queryResponse.steps ? queryResponse.steps.length : 0;
-  const hnswResults = queryResponse ? queryResponse.hnsw_results : [];
-  const bruteForceResults = queryResponse ? queryResponse.brute_force_results : [];
-  const comparisonStats = queryResponse ? queryResponse.stats : null;
-  const currentStep = queryResponse && currentStepIdx >= 0 ? queryResponse.steps[currentStepIdx] : null;
+  const handleSelectNode = (nodeId) => {
+    setSelectedNodeId(nodeId);
+  };
+
+  const totalSteps = 0;
+  const hnswResults = [];
+  const bruteForceResults = [];
+  const comparisonStats = null;
+  const currentStep = null;
 
   return (
     <div className="app-container">
@@ -78,7 +80,11 @@ export default function App() {
         </div>
       )}
 
-      {isLoading && <div className="loader-placeholder">Loading...</div>}
+      {isLoading && (
+        <div className="loader-placeholder">
+          Loading graph structure and benchmark stats...
+        </div>
+      )}
 
       <main className="app-main-grid">
         {/* Left Column - Traversal Visualizer */}
@@ -92,7 +98,7 @@ export default function App() {
             currentStep={currentStep}
             hnswResults={hnswResults}
             selectedNodeId={selectedNodeId}
-            onSelectNode={setSelectedNodeId}
+            onSelectNode={handleSelectNode}
           />
 
           <TraversalPlayer
@@ -116,8 +122,8 @@ export default function App() {
               <NodeInspector
                 nodeId={selectedNodeId}
                 graphData={graphData}
-                words={[]}
-                onClose={() => setSelectedNodeId(null)}
+                words={graphData ? graphData.nodes.map((n) => n.word) : []}
+                onClose={() => handleSelectNode(null)}
               />
             ) : (
               <ComparisonPanel
