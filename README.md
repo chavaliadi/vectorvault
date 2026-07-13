@@ -8,7 +8,7 @@ VectorVault is a visualization-first educational dashboard designed to demystify
 
 ## 🚀 System Architecture
 
-VectorVault decouple vector calculations, graph structures, REST services, and SVG render pipelines:
+VectorVault decouples vector calculations, graph structures, REST services, and SVG render pipelines:
 
 ```mermaid
 graph TD

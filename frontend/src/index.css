@@ -424,3 +424,19 @@ body {
   color: #fff;
   border-color: var(--color-accent);
 }
+
+/* Canvas container styling */
+.graph-canvas-container {
+  width: 100%;
+  height: 500px;
+  background-color: #020617;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-card);
+}
+
+.graph-canvas-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

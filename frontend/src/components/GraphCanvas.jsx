@@ -163,8 +163,8 @@ export default function GraphCanvas({
   }, [currentStep, hnswResults, selectedNodeId]);
 
   return (
-    <div className="graph-canvas-container" style={{ width: "100%", height: "500px", background: "#020617" }}>
-      <svg ref={svgRef} style={{ width: "100%", height: "100%" }}></svg>
+    <div className="graph-canvas-container">
+      <svg ref={svgRef} className="graph-canvas-svg"></svg>
     </div>
   );
 }
