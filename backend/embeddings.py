@@ -56,8 +56,11 @@ def load_glove(path: str, max_words: int = 5000) -> tuple[list[str], np.ndarray]
 
             if len(vector_str) != expected_dim:
                 logger.warning(
-                    f"Line {line_num} in {path} was skipped: expected {expected_dim} "
-                    f"dimensions, got {len(vector_str)}."
+                    "Line %d in %s was skipped: expected %d dimensions, got %d.",
+                    line_num,
+                    path,
+                    expected_dim,
+                    len(vector_str),
                 )
                 continue
 
@@ -67,7 +70,10 @@ def load_glove(path: str, max_words: int = 5000) -> tuple[list[str], np.ndarray]
                 vectors_list.append(vector)
             except ValueError as e:
                 logger.warning(
-                    f"Line {line_num} in {path} was skipped due to parsing error: {e}"
+                    "Line %d in %s was skipped due to parsing error: %s",
+                    line_num,
+                    path,
+                    e,
                 )
                 continue
 

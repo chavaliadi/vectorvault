@@ -43,7 +43,7 @@ def download_glove() -> None:
 
     if os.path.exists(TARGET_FILE):
         logger.info(
-            f"GloVe 50d file already exists at {TARGET_FILE}. Skipping download."
+            "GloVe 50d file already exists at %s. Skipping download.", TARGET_FILE
         )
         return
 
@@ -57,7 +57,7 @@ def download_glove() -> None:
         logger.info("Download completed successfully from Hugging Face.")
         return
     except Exception as e:
-        logger.warning(f"Fast download failed: {e}. Falling back to Stanford ZIP...")
+        logger.warning("Fast download failed: %s. Falling back to Stanford ZIP...", e)
         if os.path.exists(TARGET_FILE):
             os.remove(TARGET_FILE)
 
@@ -80,7 +80,7 @@ def download_glove() -> None:
 
         logger.info("GloVe 50d file prepared successfully.")
     except Exception as e:
-        logger.error(f"Failed to download and extract official GloVe dataset: {e}")
+        logger.error("Failed to download and extract official GloVe dataset: %s", e)
         sys.exit(1)
 
 

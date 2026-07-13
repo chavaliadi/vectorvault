@@ -214,7 +214,7 @@ Return top-k from beam + all recorded steps
 class HNSW:
     def __init__(self, M=16, ef_construction=200)
     def insert(self, vector: np.ndarray, node_id: int) -> None
-    def query(self, vector: np.ndarray, k: int = 10,
+    def query(self, vector: np.ndarray, k: int = 10, ef: int = 50,
               record_steps: bool = False) -> tuple[list, list[Step]]
     def _random_level(self) -> int
     def _search_layer(self, query, entry_points, ef, layer,

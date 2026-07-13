@@ -227,3 +227,48 @@ def test_insert_graph_structural_integrity():
     # 6. Layer 0 inclusion
     for node in hnsw.vectors:
         assert node in hnsw.graphs[0]
+
+
+def test_query_record_steps_invariance(populated_mock_hnsw):
+    """Test that query returns identical top-k results whether steps are recorded or not."""
+    hnsw = populated_mock_hnsw
+    query_vec = np.zeros(50, dtype=np.float32)
+    query_vec[3] = 0.9
+    query_vec[2] = 0.4
+    query_vec[4] = 0.1
+
+    res_with_steps, steps = hnsw.query(query_vec, k=3, ef=5, record_steps=True)
+    res_without_steps, steps_empty = hnsw.query(query_vec, k=3, ef=5, record_steps=False)
+
+    assert steps_empty == []
+    assert len(steps) > 0
+    assert res_with_steps == res_without_steps
+
+
+def test_query_no_mutation(populated_mock_hnsw):
+    """Test that querying the HNSW index does not modify internal graphs or vectors."""
+    hnsw = populated_mock_hnsw
+
+    # Save snapshot of vectors and graphs
+    original_vectors = {node_id: vec.copy() for node_id, vec in hnsw.vectors.items()}
+    original_graphs = {
+        layer: {node: list(neighbors) for node, neighbors in adj.items()}
+        for layer, adj in hnsw.graphs.items()
+    }
+    original_entry_point = hnsw.entry_point
+    original_max_level = hnsw.max_level
+
+    # Execute queries
+    query_vec = np.random.uniform(-1.0, 1.0, 50).astype(np.float32)
+    hnsw.query(query_vec, k=3, ef=10, record_steps=True)
+    hnsw.query(query_vec, k=3, ef=10, record_steps=False)
+
+    # Assert no structural mutation
+    assert hnsw.entry_point == original_entry_point
+    assert hnsw.max_level == original_max_level
+    assert hnsw.graphs == original_graphs
+    
+    # Assert no vector coordinate modifications
+    assert set(hnsw.vectors.keys()) == set(original_vectors.keys())
+    for node_id in hnsw.vectors:
+        assert np.array_equal(hnsw.vectors[node_id], original_vectors[node_id])
