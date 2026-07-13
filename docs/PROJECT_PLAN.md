@@ -122,7 +122,7 @@ Benchmark panel (always visible in header)
 - Comparison panel showing HNSW vs brute-force stats per query
 - Node inspector panel on click
 - Benchmark panel in header (recall@10, time comparison)
-- Deploy FastAPI and React (Deployment target: Undecided)
+- Document the explicit local-only deployment decision (Deployment target: Local-Only)
 - README with benchmark table
 - 60-second demo recording
 
@@ -511,7 +511,7 @@ Use these skills when building VectorVault with an AI coding assistant.
 | React 18 | Frontend | USE | |
 | D3.js v7 | Force graph + animation | USE | Core visual differentiator |
 | Vite | Build tool | USE | |
-| Undecided | Deployment | USE | |
+| Local-Only | Deployment | USE | Avoid container spin-up startup constraints |
 | TypeScript | Type safety | OPTIONAL | Add in v2 |
 | hnswlib | Validate your recall@10 | OPTIONAL | Only for cross-checking |
 | SIFT1M | Large benchmark dataset | SKIP | 512MB, too large |

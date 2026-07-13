@@ -41,8 +41,8 @@
 - **Code Reference**: [HNSW.insert in backend/hnsw.py](file:///Users/srinivasch/Documents/Projects/VectorVault/backend/hnsw.py#L134-L144)
 
 ## [2026-07-11] Python Version Pin & Deployment Platform Selection
-- **Decision**: Target Python version `3.13` and set deployment hosting as Undecided.
-- **Reasoning**: Pinning Python to `3.13` matches the current local runtime environment. Removing hosting configurations from Render focuses the scope purely on running the dashboard locally in development mode.
+- **Decision**: Target Python version `3.13` and keep deployment hosting local-only.
+- **Reasoning**: Pinning Python to `3.13` matches the current local runtime environment. Storing and constructing the HNSW graph over the 5,000-word GloVe dataset on start requires substantial initialization and memory processing; operating as a local-only dashboard avoids sluggish startup latencies and memory failures typical of free-tier cloud container configurations.
 - **Code Reference**: [PROJECT_PLAN.md](file:///Users/srinivasch/Documents/Projects/VectorVault/docs/PROJECT_PLAN.md#L411-L415) and [DEVELOPMENT_RULES.md](file:///Users/srinivasch/Documents/Projects/VectorVault/docs/DEVELOPMENT_RULES.md#L6-L10)
 
 ## [2026-07-13] D3 Static Cooling layout
