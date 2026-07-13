@@ -6,6 +6,14 @@ VectorVault is a visualization-first educational dashboard designed to demystify
 
 ---
 
+## 🎬 Interactive Traversal Demo
+
+Below is an interactive screen recording of the VectorVault player executing search traversals on real embeddings:
+
+![VectorVault Interactive Demo Recording](./docs/assets/demo.webp)
+
+---
+
 ## 🚀 System Architecture
 
 VectorVault decouples vector calculations, graph structures, REST services, and SVG render pipelines:
