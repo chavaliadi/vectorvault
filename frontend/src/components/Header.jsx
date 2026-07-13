@@ -27,28 +27,36 @@ export default function Header({ benchmarkStats, onSearch, isLoading }) {
     <header className="app-header">
       <div className="header-brand">
         <h1 className="brand-title">VectorVault</h1>
-        <span className="brand-tagline">Visualizing HNSW Search Traversal (Phase 4A Scaffold)</span>
+        <span className="brand-tagline">Visualizing HNSW Search Traversal</span>
       </div>
 
       <form className="header-search-form" onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="Search placeholder..."
+          placeholder="Enter query word (e.g., science)..."
           value={searchVal}
           onChange={(e) => setSearchVal(e.target.value)}
           disabled={isLoading}
           className="search-input"
         />
         <button type="submit" disabled={isLoading} className="btn-search">
-          Search
+          {isLoading ? "Searching..." : "Search"}
         </button>
       </form>
 
       <div className="header-benchmark-panel">
         <div className="benchmark-title">Benchmark Stats</div>
-        <div className="benchmark-metrics-placeholder">
-          {benchmarkStats ? "Stats Loaded" : "No Stats"}
-        </div>
+        {benchmarkStats ? (
+          <div className="benchmark-metrics" style={{ display: "flex", gap: "12px", fontSize: "12px", color: "var(--text-secondary)" }}>
+            <span>HNSW: <strong>{benchmarkStats.avg_hnsw_time_ms.toFixed(2)}ms</strong></span>
+            <span>BF: <strong>{benchmarkStats.avg_brute_force_time_ms.toFixed(2)}ms</strong></span>
+            <span>Recall: <strong>{(benchmarkStats.avg_recall * 100).toFixed(1)}%</strong></span>
+          </div>
+        ) : (
+          <div className="benchmark-metrics-placeholder" style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+            No Stats Loaded
+          </div>
+        )}
       </div>
     </header>
   );

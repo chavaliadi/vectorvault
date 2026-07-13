@@ -1,6 +1,6 @@
 # Memory — VectorVault Session
 
-Last updated: 2026-07-11T18:20:52+05:30
+Last updated: 2026-07-13T16:23:21+05:30
 
 ## 1. Completed Work
 
@@ -35,6 +35,12 @@ Last updated: 2026-07-11T18:20:52+05:30
   - Implemented static force layout in `GraphCanvas.jsx` pre-running D3 simulation for `110` ticks and freezing positions via `simulation.stop()`.
   - Configured panning/zooming behaviors and node selection triggers (`onSelectNode`).
   - Applied layer coloring parameters (`nodeColor.js`) and limited link rendering strictly to upper layers (Layer 1+), hiding Layer 0 lines completely.
+- **Phase 4C (Interactive Playback & Inspections)**:
+  - Connected Header search form input to execute `searchWord` API searches, saving traversal logs (`steps`), nearest neighbors list, and recall statistics in React state.
+  - Playback loop is managed dynamically using `useEffect` interval ticks inside `App.jsx`, modifying only step indices and boolean flags without holding any graph logic.
+  - Configured React -> D3 bridge inside `GraphCanvas.jsx` recoloring nodes (current: yellow, accepted: green, rejected: red, search hits: blue) and scaling up selected outlines.
+  - Dynamically draws active step traversal lines between `current` and `evaluating` node coordinates.
+  - Integrated NodeInspector rendering active layer indices and adjacency neighbor buttons navigating IDs on click.
   - Compiled production bundle successfully with zero warnings: `npm run build`.
 
 ## 2. Architectural Decisions
@@ -50,6 +56,7 @@ Last updated: 2026-07-11T18:20:52+05:30
 - **FastAPI Layer Delegation Constraint**: Explicitly enforced that the API routes do not perform vector calculations or traverse HNSW subgraphs. All calculations are delegated strictly to lower layers.
 - **D3 DOM Isolation & Static Cooling**: Separated D3 DOM nodes from React’s virtual DOM update cycle. Runs force simulations offline for 110 ticks and halts them before render to prevent CPU lockup.
 - **Graph Link Pruning (Hairball Prevention)**: Limits Layer 0 edge drawings completely during static state layout representation, rendering only sparse upper-level (Layer 1+) links.
+- **Dynamic React-to-D3 State Bridge**: Updates colors and outline thickness directly on state changes using selected references, satisfying React virtual DOM boundaries without forcing SVG tree rebuilds.
 
 ## 3. HNSW Invariants to Preserve
 - **Query Mutability**: Query operations must never mutate the graph structure.
@@ -60,19 +67,19 @@ Last updated: 2026-07-11T18:20:52+05:30
 - **Cosine Distance Source**: `cosine_distance` must be imported only from `backend.embeddings`.
 
 ## 4. Verification
-- **Automated Tests**: Total of 17 tests (9 for embeddings, 6 for HNSW, 2 for API) passing successfully in `30.95s` via `pytest`.
-- **Vite Compilation**: React + Vite workspace compiled successfully via `npm run build` in `135ms`.
+- **Automated Tests**: Total of 17 tests (9 for embeddings, 6 for HNSW, 2 for API) passing successfully in `30.84s` via `pytest`.
+- **Vite Compilation**: React + Vite workspace compiled successfully via `npm run build` in `160ms`.
 - **Review Outcomes**: 
   - Module 1 Approved.
   - Module 2 Approved.
   - Module 3 Approved.
-  - Phase 4B implemented, built, and compiled cleanly.
+  - Phase 4C implemented, built, and compiled cleanly.
 
 ## 5. Current Project State
 - **Module 1 (embeddings.py & download_glove.py)**: Complete and verified.
 - **Module 2 (hnsw.py)**: Complete and verified.
 - **Module 3 (main.py & benchmark.py)**: Complete and verified.
-- **Module 4 (React + D3 Frontend)**: Phase 4B complete and verified. Awaiting review.
+- **Module 4 (React + D3 Frontend)**: Phase 4C complete and verified. Awaiting review.
 - **Integration Review & Deployment**: Ready to begin.
 
 ## 6. Known Technical Debt
@@ -82,6 +89,4 @@ Last updated: 2026-07-11T18:20:52+05:30
 
 ## 7. Next Session Plan
 1. Read this memory.
-2. Review Phase 4B integration endpoints and static D3 force simulations.
-3. Align on the design and setup for Phase 4C (timeline playback, animations, and color highlighting).
-4. Implement interval playback triggers and inspect lists.
+2. Align on the design and setup for final walkthrough verification or phase deployment options.

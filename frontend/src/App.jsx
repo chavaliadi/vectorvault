@@ -5,12 +5,12 @@ import TraversalPlayer from "./components/TraversalPlayer";
 import ComparisonPanel from "./components/ComparisonPanel";
 import NodeInspector from "./components/NodeInspector";
 
-import { fetchGraph, fetchBenchmark } from "./utils/api";
+import { fetchGraph, fetchBenchmark, searchWord } from "./utils/api";
 
 /**
  * Root App component.
  * Acts as the centralized state owner.
- * Connected to backend endpoints for Graph and Benchmark fetching in Phase 4B.
+ * Connected to backend endpoints for Graph, Benchmark, and Search in Phase 4C.
  */
 export default function App() {
   // Scaffolding placeholder state
@@ -42,28 +42,88 @@ export default function App() {
     loadData();
   }, []);
 
-  // Search query handler (Search logic not implemented in Phase 4B)
-  const handleSearch = (word) => {
-    console.log(`Search requested for: ${word} (Not implemented in Phase 4B)`);
+  // Playback timer loop logic using useEffect interval
+  useEffect(() => {
+    if (!isPlaying || !queryResponse || !queryResponse.steps) return;
+    const total = queryResponse.steps.length;
+    if (total === 0) {
+      setIsPlaying(false);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setCurrentStepIdx((prev) => {
+        if (prev >= total - 1) {
+          setIsPlaying(false);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, playbackSpeed);
+
+    return () => clearInterval(intervalId);
+  }, [isPlaying, playbackSpeed, queryResponse]);
+
+  // Search query handler using searchWord() API helper
+  const handleSearch = async (word) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      setIsPlaying(false);
+      setCurrentStepIdx(-1);
+      setQueryResponse(null);
+
+      const response = await searchWord(word, 10, 50); // Default k=10, ef=50
+      setQueryResponse(response);
+    } catch (err) {
+      setError(err.message || "Query search failed.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Traversal Playback handlers (Playback logic not implemented in Phase 4B)
-  const handlePlayPause = () => {};
-  const handleStepForward = () => {};
-  const handleStepBack = () => {};
-  const handleReset = () => {};
-  const handleSeek = (idx) => {};
-  const handleChangeSpeed = (ms) => {};
+  // Traversal Playback handlers updating only indices and state variables
+  const handlePlayPause = () => {
+    if (!queryResponse || !queryResponse.steps || queryResponse.steps.length === 0) return;
+    const total = queryResponse.steps.length;
+    if (currentStepIdx >= total - 1) {
+      setCurrentStepIdx(-1);
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleStepForward = () => {
+    if (!queryResponse || !queryResponse.steps) return;
+    const total = queryResponse.steps.length;
+    setCurrentStepIdx((prev) => Math.min(prev + 1, total - 1));
+  };
+
+  const handleStepBack = () => {
+    setCurrentStepIdx((prev) => Math.max(prev - 1, -1));
+  };
+
+  const handleReset = () => {
+    setIsPlaying(false);
+    setCurrentStepIdx(-1);
+  };
+
+  const handleSeek = (idx) => {
+    setCurrentStepIdx(idx);
+  };
+
+  const handleChangeSpeed = (ms) => {
+    setPlaybackSpeed(ms);
+  };
 
   const handleSelectNode = (nodeId) => {
     setSelectedNodeId(nodeId);
   };
 
-  const totalSteps = 0;
-  const hnswResults = [];
-  const bruteForceResults = [];
-  const comparisonStats = null;
-  const currentStep = null;
+  const totalSteps = queryResponse && queryResponse.steps ? queryResponse.steps.length : 0;
+  const hnswResults = queryResponse ? queryResponse.hnsw_results : [];
+  const bruteForceResults = queryResponse ? queryResponse.brute_force_results : [];
+  const comparisonStats = queryResponse ? queryResponse.stats : null;
+  const currentStep = queryResponse && queryResponse.steps && currentStepIdx >= 0 ? queryResponse.steps[currentStepIdx] : null;
 
   return (
     <div className="app-container">
@@ -82,7 +142,7 @@ export default function App() {
 
       {isLoading && (
         <div className="loader-placeholder">
-          Loading graph structure and benchmark stats...
+          Processing...
         </div>
       )}
 
@@ -123,6 +183,7 @@ export default function App() {
                 nodeId={selectedNodeId}
                 graphData={graphData}
                 words={graphData ? graphData.nodes.map((n) => n.word) : []}
+                onSelectNode={handleSelectNode}
                 onClose={() => handleSelectNode(null)}
               />
             ) : (
