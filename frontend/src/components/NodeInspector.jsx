@@ -19,19 +19,19 @@ import React from "react";
  */
 export default function NodeInspector({ nodeId, graphData, words, onSelectNode, onClose }) {
   if (nodeId === null || !graphData) {
-    return <div className="inspector-empty-placeholder">Select a node to inspect...</div>;
+    return <div className="inspector-empty">Select a node to inspect...</div>;
   }
 
   // Find node details
   const node = graphData.nodes.find((n) => n.id === nodeId);
   if (!node) {
     return (
-      <div className="node-inspector-placeholder">
-        <div className="inspector-header-placeholder">
+      <div className="node-inspector-card">
+        <div className="inspector-header">
           <h4>Node Inspector</h4>
-          <button onClick={onClose} className="btn-close-inspector-placeholder">✖</button>
+          <button onClick={onClose} className="btn-close-inspector">✖</button>
         </div>
-        <div className="inspector-body-placeholder">
+        <div className="inspector-body">
           <p>Node #{nodeId} not found in the graph.</p>
         </div>
       </div>
@@ -65,13 +65,13 @@ export default function NodeInspector({ nodeId, graphData, words, onSelectNode, 
   };
 
   return (
-    <div className="node-inspector-placeholder">
-      <div className="inspector-header-placeholder">
-        <h4 className="section-title-placeholder">Node Inspector</h4>
-        <button onClick={onClose} className="btn-close-inspector-placeholder">✖</button>
+    <div className="node-inspector-card">
+      <div className="inspector-header">
+        <h4 className="section-title">Node Inspector</h4>
+        <button onClick={onClose} className="btn-close-inspector">✖</button>
       </div>
 
-      <div className="inspector-body-placeholder">
+      <div className="inspector-body">
         <div className="inspector-row">
           <strong>Word:</strong> <span className="text-highlight">{node.word}</span>
         </div>

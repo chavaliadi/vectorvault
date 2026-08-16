@@ -13,7 +13,6 @@ import { fetchGraph, fetchBenchmark, searchWord } from "./utils/api";
  * Connected to backend endpoints for Graph, Benchmark, and Search in Phase 4C.
  */
 export default function App() {
-  // Scaffolding placeholder state
   const [graphData, setGraphData] = useState(null);
   const [benchmarkStats, setBenchmarkStats] = useState(null);
   const [queryResponse, setQueryResponse] = useState(null);
@@ -141,7 +140,7 @@ export default function App() {
       )}
 
       {isLoading && (
-        <div className="loader-placeholder">
+        <div className="loader-container">
           Processing...
         </div>
       )}

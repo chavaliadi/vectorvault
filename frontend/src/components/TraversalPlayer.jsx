@@ -34,18 +34,18 @@ export default function TraversalPlayer({
   const isStart = currentStepIdx === -1;
 
   return (
-    <div className="traversal-player-placeholder">
+    <div className="traversal-player-panel">
       <div className="player-controls-row">
-        <button onClick={onReset} className="btn-control-placeholder" title="Reset Traversal">
+        <button onClick={onReset} className="btn-control" title="Reset Traversal">
           ⏮ Reset
         </button>
-        <button onClick={onStepBack} disabled={isStart} className="btn-control-placeholder" title="Step Back">
+        <button onClick={onStepBack} disabled={isStart} className="btn-control" title="Step Back">
           ◀ Back
         </button>
-        <button onClick={onPlayPause} disabled={totalSteps === 0} className="btn-control-placeholder btn-play-pause-placeholder" title={isPlaying ? "Pause" : "Play"}>
+        <button onClick={onPlayPause} disabled={totalSteps === 0} className="btn-control btn-play-pause" title={isPlaying ? "Pause" : "Play"}>
           {isPlaying ? "⏸ Pause" : "▶ Play"}
         </button>
-        <button onClick={onStepForward} disabled={isCompleted || totalSteps === 0} className="btn-control-placeholder" title="Step Forward">
+        <button onClick={onStepForward} disabled={isCompleted || totalSteps === 0} className="btn-control" title="Step Forward">
           Forward ▶
         </button>
       </div>
@@ -59,7 +59,7 @@ export default function TraversalPlayer({
           value={currentStepIdx}
           onChange={(e) => onSeek && onSeek(parseInt(e.target.value))}
           disabled={totalSteps === 0}
-          className="timeline-slider-placeholder"
+          className="timeline-slider"
         />
         <span className="timeline-counter">
           {currentStepIdx + 1} / {totalSteps}
@@ -70,19 +70,19 @@ export default function TraversalPlayer({
         <span>Interval:</span>
         <button
           onClick={() => onChangeSpeed && onChangeSpeed(1000)}
-          className={`btn-speed-placeholder ${playbackSpeed === 1000 ? "active" : ""}`}
+          className={`btn-speed ${playbackSpeed === 1000 ? "active" : ""}`}
         >
           Slow (1.0s)
         </button>
         <button
           onClick={() => onChangeSpeed && onChangeSpeed(500)}
-          className={`btn-speed-placeholder ${playbackSpeed === 500 ? "active" : ""}`}
+          className={`btn-speed ${playbackSpeed === 500 ? "active" : ""}`}
         >
           Normal (0.5s)
         </button>
         <button
           onClick={() => onChangeSpeed && onChangeSpeed(200)}
-          className={`btn-speed-placeholder ${playbackSpeed === 200 ? "active" : ""}`}
+          className={`btn-speed ${playbackSpeed === 200 ? "active" : ""}`}
         >
           Fast (0.2s)
         </button>

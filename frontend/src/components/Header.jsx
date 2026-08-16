@@ -47,13 +47,13 @@ export default function Header({ benchmarkStats, onSearch, isLoading }) {
       <div className="header-benchmark-panel">
         <div className="benchmark-title">Benchmark Stats</div>
         {benchmarkStats ? (
-          <div className="benchmark-metrics" style={{ display: "flex", gap: "12px", fontSize: "12px", color: "var(--text-secondary)" }}>
+          <div className="benchmark-metrics">
             <span>HNSW: <strong>{benchmarkStats.avg_hnsw_time_ms.toFixed(2)}ms</strong></span>
             <span>BF: <strong>{benchmarkStats.avg_brute_force_time_ms.toFixed(2)}ms</strong></span>
             <span>Recall: <strong>{(benchmarkStats.avg_recall * 100).toFixed(1)}%</strong></span>
           </div>
         ) : (
-          <div className="benchmark-metrics-placeholder" style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+          <div className="benchmark-metrics-empty">
             No Stats Loaded
           </div>
         )}
