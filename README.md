@@ -166,8 +166,11 @@ When executing a search query (e.g. typing "computer" in the search form), the T
 
 ---
 
-## 📊 Standalone CLI Benchmark Utility
+## 📊 Standalone CLI Benchmark & Validation Utility
 
+VectorVault includes CLI utilities to benchmark approximate search metrics and cross-validate algorithm correctness against reference implementations:
+
+### 1. Simple Benchmark (`backend.benchmark`)
 Compare HNSW approximate recall latency numbers directly against an exact brute-force search over 50 seeded queries:
 ```bash
 python3 -m backend.benchmark
@@ -186,6 +189,33 @@ Example Output:
 | Avg Recall@10        | 0.9540                   |
 +----------------------+--------------------------+
 ```
+
+### 2. Reference Cross-Validation & Parameter Sweep (`backend.validate`)
+Cross-validate VectorVault against `hnswlib` (the standard C++ reference implementation) and evaluate the $M \times ef\_search$ trade-off curve across a multi-dimensional grid (takes ~2 minutes):
+```bash
+python3 -m backend.validate
+```
+
+Example `hnswlib` Comparison Output:
+```
++-------------------------------------------------+
+|          hnswlib Reference Comparison           |
++----------------------+--------------------------+
+| Metric               | Value                    |
++----------------------+--------------------------+
+| Queries Run          | 50                       |
+| VectorVault Recall   | 0.9520                   |
+| hnswlib Recall       | 1.0000                   |
+| Top-10 ID Overlap    | 95.2%                    |
+| VectorVault Latency  | 2.3445 ms                |
+| hnswlib Latency      | 0.0279 ms                |
++----------------------+--------------------------+
+```
+
+### 📈 Recall vs. Latency Trade-off Curve
+Executing `backend.validate` generates a parameter sweep plot displaying how graph degree ($M$) and search beam size ($ef\_search$) impact accuracy vs. speed:
+
+![HNSW Recall vs. Latency Trade-off Curve](./docs/assets/tradeoff_curve.png)
 
 ---
 
