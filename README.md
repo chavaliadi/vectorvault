@@ -10,7 +10,9 @@ VectorVault is a visualization-first educational dashboard designed to demystify
 
 Below is an interactive screen recording of the VectorVault player executing search traversals on real embeddings:
 
-![VectorVault Interactive Demo Recording](./docs/assets/demo.webp)
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="VectorVault Interactive Demo Recording" width="100%" />
+</p>
 
 ---
 
