@@ -106,7 +106,7 @@ if __name__ == "__main__":
     words, vectors = load_glove(glove_path)
 
     print("Building HNSW index...")
-    hnsw = HNSW()
+    hnsw = HNSW(seed=42)
     for i, vec in enumerate(vectors):
         hnsw.insert(vec, i)
         if (i + 1) % 1000 == 0:

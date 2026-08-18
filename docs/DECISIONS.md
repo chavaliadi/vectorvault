@@ -65,3 +65,9 @@
 - **Reasoning**: Internal brute-force comparisons only verify local math consistency; benchmarking against `hnswlib` proves that VectorVault's graph routing achieves structural parity with standard production implementations (100% Top-10 ID overlap and identical recall metrics). Sweeping the $M \times ef\_search$ grid maps the exact Recall vs. Query Latency trade-off curve across sparse vs. dense graph connectivity choices.
 - **Code Reference**: [backend/validate.py](file:///Users/srinivasch/Documents/Projects/VectorVault/backend/validate.py)
 
+## [2026-08-18] Fully Deterministic HNSW Index Construction via Seeded RNG
+- **Decision**: Add an optional `seed: int | None = None` parameter to `HNSW.__init__`, storing `self.rng = np.random.default_rng(seed)` on the instance and using `self.rng.uniform()` inside `_random_level()`. Default to `seed=42` across `backend/benchmark.py`, `backend/validate.py`, `backend/main.py`, and test suites.
+- **Reasoning**: Previously, `_random_level()` drew from global unseeded `np.random.uniform()`, causing probabilistic graph topology differences on every index build and producing minor recall discrepancies (~0.948 vs 0.954) on identical configs. Encapsulating RNG state inside `HNSW` instances guarantees that two index builds with the same seed yield 100% byte-identical graph structures (`self.graphs`), resulting in reproducible evaluation metrics (`Recall@10 = 0.9460` across both `benchmark.py` and `validate.py`).
+- **Code Reference**: [HNSW.__init__ in backend/hnsw.py](file:///Users/srinivasch/Documents/Projects/VectorVault/backend/hnsw.py#L25-L40), [run_benchmark in backend/benchmark.py](file:///Users/srinivasch/Documents/Projects/VectorVault/backend/benchmark.py#L109), and [run_hnswlib_validation in backend/validate.py](file:///Users/srinivasch/Documents/Projects/VectorVault/backend/validate.py#L134)
+
+

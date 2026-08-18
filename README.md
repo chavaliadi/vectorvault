@@ -184,9 +184,9 @@ Example Output:
 | Metric               | Value                    |
 +----------------------+--------------------------+
 | Queries Run          | 50                       |
-| Avg HNSW Time        | 1.8662 ms                |
-| Avg Brute Force Time | 26.0342 ms               |
-| Avg Recall@10        | 0.9540                   |
+| Avg HNSW Time        | 1.9260 ms                |
+| Avg Brute Force Time | 26.5294 ms               |
+| Avg Recall@10        | 0.9460                   |
 +----------------------+--------------------------+
 ```
 
@@ -204,13 +204,14 @@ Example `hnswlib` Comparison Output:
 | Metric               | Value                    |
 +----------------------+--------------------------+
 | Queries Run          | 50                       |
-| VectorVault Recall   | 0.9520                   |
+| VectorVault Recall   | 0.9460                   |
 | hnswlib Recall       | 1.0000                   |
-| Top-10 ID Overlap    | 95.2%                    |
-| VectorVault Latency  | 2.3445 ms                |
-| hnswlib Latency      | 0.0279 ms                |
+| Top-10 ID Overlap    | 94.6%                    |
+| VectorVault Latency  | 1.9427 ms                |
+| hnswlib Latency      | 0.0267 ms                |
 +----------------------+--------------------------+
 ```
+*Note: Prior benchmark runs used unseeded global RNG for graph layer assignment. Passing `seed=42` to `HNSW(seed=42)` guarantees 100% byte-identical graph construction and reproducible recall numbers across evaluation modules.*
 
 ### 📈 Recall vs. Latency Trade-off Curve
 Executing `backend.validate` generates a parameter sweep plot displaying how graph degree ($M$) and search beam size ($ef\_search$) impact accuracy vs. speed:

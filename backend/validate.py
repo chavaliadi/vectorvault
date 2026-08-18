@@ -131,7 +131,7 @@ def run_hnswlib_validation(
     # 1. Build and query VectorVault HNSW index
     if log_progress:
         print(f"Building VectorVault HNSW index (M={M}, ef_c={ef_construction})...", flush=True)
-    vv_hnsw = HNSW(M=M, ef_construction=ef_construction)
+    vv_hnsw = HNSW(M=M, ef_construction=ef_construction, seed=seed)
     for i, vec in enumerate(vectors):
         vv_hnsw.insert(vec, i)
         if log_progress and (i + 1) % 1000 == 0:
@@ -256,7 +256,7 @@ def run_parameter_sweep(
     for M in M_values:
         if log_progress:
             print(f"\nBuilding VectorVault HNSW index for M={M}...", flush=True)
-        hnsw = HNSW(M=M, ef_construction=ef_construction)
+        hnsw = HNSW(M=M, ef_construction=ef_construction, seed=seed)
         for i, vec in enumerate(vectors):
             hnsw.insert(vec, i)
             if log_progress and (i + 1) % 1000 == 0:

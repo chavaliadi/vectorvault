@@ -22,7 +22,10 @@ class HNSW:
     """Hierarchical Navigable Small World index for approximate nearest neighbor search."""
 
     def __init__(
-        self, M: int = DEFAULT_M, ef_construction: int = DEFAULT_EF_CONSTRUCTION
+        self,
+        M: int = DEFAULT_M,
+        ef_construction: int = DEFAULT_EF_CONSTRUCTION,
+        seed: int | None = None,
     ) -> None:
         """Initialize the HNSW index.
 
@@ -32,9 +35,13 @@ class HNSW:
             Number of bidirectional links to establish for each new node, by default 16.
         ef_construction : int, optional
             Size of the dynamic candidate list during construction, by default 200.
+        seed : int | None, optional
+            Random seed for reproducible layer level assignments, by default None.
         """
         self.M = M
         self.ef_construction = ef_construction
+        self.seed = seed
+        self.rng = np.random.default_rng(seed)
 
         # Internal state structures
         self.vectors: dict[int, np.ndarray] = {}
@@ -224,7 +231,7 @@ class HNSW:
         int
             The level at which the node will be inserted.
         """
-        r = 1.0 - np.random.uniform(0.0, 1.0)
+        r = 1.0 - self.rng.uniform(0.0, 1.0)
         m_L = 1.0 / np.log(self.M)
         return int(-np.log(r) * m_L)
 

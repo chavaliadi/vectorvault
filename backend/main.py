@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     word_to_index = {word: idx for idx, word in enumerate(words)}
 
     logger.info("Initializing HNSW index construction...")
-    hnsw = HNSW()
+    hnsw = HNSW(seed=42)
     num_vectors = len(vectors)
 
     for i, vec in enumerate(vectors):

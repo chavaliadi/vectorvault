@@ -272,3 +272,23 @@ def test_query_no_mutation(populated_mock_hnsw):
     assert set(hnsw.vectors.keys()) == set(original_vectors.keys())
     for node_id in hnsw.vectors:
         assert np.array_equal(hnsw.vectors[node_id], original_vectors[node_id])
+
+
+def test_reproducible_hnsw_construction_same_seed():
+    """Test that two HNSW instances built with the exact same seed produce byte-identical graphs."""
+    rng = np.random.RandomState(42)
+    vectors = [rng.randn(50).astype(np.float32) for _ in range(50)]
+
+    hnsw1 = HNSW(M=16, ef_construction=200, seed=42)
+    for i, vec in enumerate(vectors):
+        hnsw1.insert(vec, i)
+
+    hnsw2 = HNSW(M=16, ef_construction=200, seed=42)
+    for i, vec in enumerate(vectors):
+        hnsw2.insert(vec, i)
+
+    # Assert exact byte-identical graph structures and metadata
+    assert hnsw1.max_level == hnsw2.max_level
+    assert hnsw1.entry_point == hnsw2.entry_point
+    assert hnsw1.graphs == hnsw2.graphs
+
