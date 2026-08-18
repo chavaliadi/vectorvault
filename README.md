@@ -232,4 +232,4 @@ python3 -m pytest
 
 ## 📝 Documented Architectural Decisions
 
-Detailed engineering tradeoffs, performance timing comparisons (such as list vs dictionary access speeds inside hot routing loops), pruning connectivity structures, and D3 canvas layouts are fully documented in the [Design Decisions Log](file:///Users/srinivasch/Documents/Projects/VectorVault/docs/DECISIONS.md).
+Detailed engineering tradeoffs, performance timing comparisons (such as list vs dictionary access speeds inside hot routing loops), pruning connectivity structures, and D3 canvas layouts are fully documented in the [Design Decisions Log](./docs/DECISIONS.md).
