@@ -566,7 +566,7 @@ vectorvault/
 
 | Method | Recall@10 | Avg query time | Nodes visited |
 |---|---|---|---|
-| VectorVault HNSW (M=16, ef=50) | 0.954 | ~1.87ms | ~67 of 5,000 |
+| VectorVault HNSW (M=16, ef=50) | 0.946 | ~1.92ms | ~67 of 5,000 |
 | Brute-force exact search | 1.0 (baseline) | ~26.03ms | 5,000 of 5,000 |
 
 Dataset: GloVe 6B, 5,000 words, 50 dimensions
@@ -587,7 +587,7 @@ Reproduced with: `python3 -m backend.benchmark`
 - **D3 static layouts with simulation cooling**: Calculating D3 force ticks dynamically causes major CPU locking. Pre-running the layout engine offline for 110 ticks and calling `simulation.stop()` keeps layouts static, saving browser threads.
 
 ### Trade-offs I made
-- **M=16 vs higher degree values**: Restricting M to 16 keeps connections sparse. With search beam ef=50, we achieve an average recall of 95.4% while visiting only 1.34% of the index nodes (~67 of 5,000).
+- **M=16 vs higher degree values**: Restricting M to 16 keeps connections sparse. With search beam ef=50, we achieve an average recall of 94.6% while visiting only 1.34% of the index nodes (~67 of 5,000).
 - **Vectors dict vs list structures**: Keeping vectors as dictionaries matches standard indexing parameters (supporting arbitrary string or non-contiguous database keys). Speed benchmarks proved that dictionary lookups (1.726 ms) perform equally to list indexing (1.728 ms) since latency is dominated by cosine distance calculations.
 
 ### What I'd improve in v2
@@ -605,6 +605,6 @@ Reproduced with: `python3 -m backend.benchmark`
 
 - "I implemented HNSW from scratch — hierarchical graph structure, layer assignment using exponential distribution, beam search with candidate heaps. Not a library wrapper."
 - "The key insight of HNSW: start at the top layer with few nodes for fast long-range elimination, then descend to layer 0 for precise local search."
-- "My implementation achieves recall@10 of 0.954 with 14× speedup over brute-force on GloVe 50d."
-- "The comparison panel shows exactly how many nodes HNSW visited versus brute-force. Visiting 67 of 5,000 nodes and getting 95% of the same answers teaches the algorithm better than any explanation."
+- "My implementation achieves recall@10 of 0.946 with 14× speedup over brute-force on GloVe 50d."
+- "The comparison panel shows exactly how many nodes HNSW visited versus brute-force. Visiting 67 of 5,000 nodes and getting 94.6% of the same answers teaches the algorithm better than any explanation."
 - "This is the same core algorithm that Qdrant, Weaviate, and pgvector use internally. I wanted to understand it rather than just call it."
